@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Leaflet Map with Visitor Location and Mouse Coordinates</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://cdn.maptiler.com/maptiler-geocoding-control/v1.3.3/leaflet.umd.js"></script>
+    <link href="https://cdn.maptiler.com/maptiler-geocoding-control/v1.3.3/style.css" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
+        #info {
+            display: block;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto;
+            padding: 10px;
+            border: none;
+            border-radius: 3px;
+            font-size: 14px;
+            text-align: center;
+            color: #222;
+            background: #fff;
+            z-index: 999;
+        }
+        button { 
+            width: 150px; 
+            height: 30px; 
+            position: absolute; 
+            top: 10px; 
+            left: 10px; 
+            color: black; 
+            z-index: 1000; 
+            cursor: pointer;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="map">
+        <a href="https://www.maptiler.com" style="position:absolute;left:10px;bottom:10px;z-index:999;">
+            <img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo">
+        </a>
+    </div>
+    <pre id="info">Move your mouse over the map</pre>
+    <button id="locate-btn">Find My Location</button>
+    <p><a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a></p>
+
+    <script>
+        // MAP FUNCTIONS AND KEY TO MAPTILER //
+        const key = 'GNkomtyUL0ijisx2vyHn';
+
+        // Initialize the Leaflet map
+        const map = L.map('map').setView([0, 0], 2); // Start with a global view
+        const layer = L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${key}`, {
+            tileSize: 512,
+            zoomOffset: -1,
+            minZoom: 1,
+            attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
+            crossOrigin: true
+        }).addTo(map);
+
+        // Geolocation function to center map on user's location
+        function centerMapOnLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const userLocation = [position.coords.latitude, position.coords.longitude];
+                    map.setView(userLocation, 13);
+                    L.marker(userLocation).addTo(map)
+                        .bindPopup("<b>Your Location</b>").openPopup();
+                }, function() {
+                    alert("Geolocation failed. Default view is displayed.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Call the function to center map on user's location
+       document.getElementById('locate-btn').addEventListener('click', centerMapOnLocation);
+
+
+        // Geocoding control
+        L.control.maptilerGeocoding({ apiKey: key }).addTo(map);
+
+        // Display mouse coordinates
+        map.on('mousemove', function (e) {
+            document.getElementById('info').innerHTML =
+                `Mouse position: ${JSON.stringify(e.containerPoint)}<br />` +
+                `Coordinates: ${JSON.stringify(e.latlng.wrap())}`;
+        });
+    </script>
+</body>
+</html>
